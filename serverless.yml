@@ -1,0 +1,48 @@
+service: serverless-app-test
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: us-east-1 
+
+resources:
+  Resources:
+    AppLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: AppLambdaRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: S3AccessPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - s3:GetObject
+                    - s3:PutObject
+                  Resource: "arn:aws:s3:::serverless-assn/*"
+
+functions:
+  app:
+    handler: lambda.handler
+    events:
+      - http:
+          path: /
+          method: GET
+    role: AppLambdaRole
+
+plugins:
+  - serverless-offline
+
+custom: 
+  serverless-http: 
+    stage: ${opt:stage, 'dev'}
+  environment:
+    LOCAL_DEV: true
